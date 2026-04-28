@@ -26,7 +26,7 @@ st.write('Enter transaction details to predict if it\'s fraudulent.')
 timestamp = st.number_input('Timestamp (e.g., 1678886400)', min_value=0, value=1678886400)
 amount = st.number_input('Amount', min_value=0.0, value=1000.0, format="%.2f")
 old_balance = st.number_input('Old Balance', min_value=0.0, value=5000.0, format="%.2f")
-new_balance = st.number_input('New Balance', min_value=0.0, value=6000.0, format="%.2f") # Changed default new_balance for testing
+new_balance = st.number_input('New Balance', min_value=0.0, value=4000.0, format="%.2f") # Reverted default to a plausible value
 is_international = st.selectbox('Is International?', options=[0, 1], format_func=lambda x: 'Yes' if x==1 else 'No')
 
 # Categorical inputs
@@ -39,7 +39,7 @@ if st.button('Predict Fraud'):
     input_data = pd.DataFrame({
         'Timestamp': [timestamp],
         'Transaction_Type': [transaction_type],
-        'Amount': [amount],
+         'Amount': [amount],
         'Old_Balance': [old_balance],
         'New_Balance': [new_balance],
         'Region': [region],
@@ -64,20 +64,31 @@ if st.button('Predict Fraud'):
     for col in feature_columns:
         if col not in df_encoded_input.columns:
             df_encoded_input[col] = 0
-            # Drop any extra columns that weren't in the training set
+    # Drop any extra columns that weren't in the training set
     df_encoded_input = df_encoded_input[feature_columns]
 
     st.write('### Debugging: Final Encoded Input for Model')
     st.dataframe(df_encoded_input)
-
     # Make prediction
     try:
         prediction_proba = model.predict_proba(df_encoded_input)[:, 1][0]
-        predicted_fraud = (prediction_proba >= 0.5).astype(int)
+        predicted_fraud_model = (prediction_proba >= 0.5).astype(int)
+
+        # Apply a rule-based override for obvious balance errors in specific transaction types
+        is_obvious_fraud_by_rule = False
+        if abs(input_data['Balance_Error'].iloc[0]) > 0.01: # Check for significant balance error
+            # Added 'PAYMENT' to the list of transaction types for rule-based override
+            if transaction_type in ['CASH_OUT', 'TRANSFER', 'PAYMENT']:
+                is_obvious_fraud_by_rule = True
+
+        # Combine model prediction with rule-based override
+        predicted_fraud = 1 if (predicted_fraud_model == 1 or is_obvious_fraud_by_rule) else 0
 
         st.write(f"### Prediction Results:")
         if predicted_fraud == 1:
             st.error(f"🚨 Fraudulent Transaction Detected! (Probability: {prediction_proba:.2f})")
+            if is_obvious_fraud_by_rule:
+                st.warning("Note: Fraud detected based on significant Balance Error for this transaction type, overriding model's low probability.")
         else:
             st.success(f"✅ Legitimate Transaction. (Probability: {prediction_proba:.2f})")
 
