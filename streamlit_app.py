@@ -39,22 +39,16 @@ if st.button('Predict Fraud'):
     input_data = pd.DataFrame({
         'Timestamp': [timestamp],
         'Transaction_Type': [transaction_type],
-         'Amount': [amount],
+        'Amount': [amount],
         'Old_Balance': [old_balance],
         'New_Balance': [new_balance],
         'Region': [region],
         'Device_Type': [device_type],
         'Is_International': [is_international]
     })
-    st.write('### Debugging: Raw Input Data')
-    st.dataframe(input_data)
-
     # Apply the same feature engineering steps
     input_data['Hour'] = input_data['Timestamp'] % 24
     input_data['Balance_Error'] = (input_data['Old_Balance'] - input_data['Amount']) - input_data['New_Balance']
-
-    st.write('### Debugging: After Feature Engineering')
-    st.dataframe(input_data)
 
     # Apply one-hot encoding
     df_encoded_input = pd.get_dummies(input_data, columns=categorical_cols_for_encoding, drop_first=True)
@@ -66,10 +60,7 @@ if st.button('Predict Fraud'):
             df_encoded_input[col] = 0
     # Drop any extra columns that weren't in the training set
     df_encoded_input = df_encoded_input[feature_columns]
-
-    st.write('### Debugging: Final Encoded Input for Model')
-    st.dataframe(df_encoded_input)
-    # Make prediction
+ # Make prediction
     try:
         prediction_proba = model.predict_proba(df_encoded_input)[:, 1][0]
         predicted_fraud_model = (prediction_proba >= 0.5).astype(int)
