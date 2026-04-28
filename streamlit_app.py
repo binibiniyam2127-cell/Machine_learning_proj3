@@ -18,9 +18,8 @@ except FileNotFoundError:
 except Exception as e:
     st.error(f"Error loading model assets: {e}")
     st.stop()
-
 # --- Streamlit UI ---
-st.title('Transaction Fraud Detection App')
+st.title('🛡️ Transaction Fraud Detection System')
 st.write('Enter transaction details to predict if it\'s fraudulent.')
 
 # Input fields for transaction details
@@ -45,10 +44,9 @@ if st.button('Predict Fraud'):
         'New_Balance': [new_balance],
         'Region': [region],
         'Device_Type': [device_type],
-        'Is_International': [is_international]
+         'Is_International': [is_international]
     })
-
-    # Apply the same feature engineering steps
+# Apply the same feature engineering steps
     input_data['Hour'] = input_data['Timestamp'] % 24
     input_data['Balance_Error'] = (input_data['Old_Balance'] - input_data['Amount']) - input_data['New_Balance']
 
@@ -70,9 +68,9 @@ if st.button('Predict Fraud'):
 
         st.write(f"### Prediction Results:")
         if predicted_fraud == 1:
-            st.error(f"\u26A0\uFE0F Fraud Detected! (Probability: {prediction_proba:.2f})")
+            st.error(f"🚨 Fraudulent Transaction Detected! (Probability: {prediction_proba:.2f})")
         else:
-            st.success(f"\u2705 No Fraud Detected. (Probability: {prediction_proba:.2f})")
+            st.success(f"✅ Legitimate Transaction. (Probability: {prediction_proba:.2f})")
 
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
