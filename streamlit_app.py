@@ -11,7 +11,7 @@ try:
     model = joblib.load(os.path.join(MODEL_ASSETS_PATH, 'xgboost_model.pkl'))
     feature_columns = joblib.load(os.path.join(MODEL_ASSETS_PATH, 'feature_columns.pkl'))
     categorical_cols_for_encoding = joblib.load(os.path.join(MODEL_ASSETS_PATH, 'categorical_cols_for_encoding.pkl'))
-    st.success("Model assets loaded successfully!")
+
 except FileNotFoundError:
     st.error("Error: Model assets not found. Make sure 'model_assets' folder is in the same directory as this script.")
     st.stop()
