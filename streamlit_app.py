@@ -48,7 +48,14 @@ if st.button('Predict Fraud'):
     })
     # Apply the same feature engineering steps
     input_data['Hour'] = input_data['Timestamp'] % 24
-    input_data['Balance_Error'] = (input_data['Old_Balance'] - input_data['Amount']) - input_data['New_Balance']
+    # Refined Balance_Error calculation based on Transaction_Type
+    input_data['Balance_Error'] = input_data.apply(
+        lambda row:
+            (row['Old_Balance'] + row['Amount']) - row['New_Balance'] 
+            if row['Transaction_Type'] == 'CASH_IN'
+            else (row['Old_Balance'] - row['Amount']) - row['New_Balance'],
+        axis=1
+    )
 
     # Apply one-hot encoding
     df_encoded_input = pd.get_dummies(input_data, columns=categorical_cols_for_encoding, drop_first=True)
