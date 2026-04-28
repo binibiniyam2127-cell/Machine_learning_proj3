@@ -18,7 +18,7 @@ except FileNotFoundError:
 except Exception as e:
     st.error(f"Error loading model assets: {e}")
     st.stop()
-# --- Streamlit UI ---
+    # --- Streamlit UI ---
 st.title('🛡️ Transaction Fraud Detection System')
 st.write('Enter transaction details to predict if it\'s fraudulent.')
 
@@ -26,7 +26,7 @@ st.write('Enter transaction details to predict if it\'s fraudulent.')
 timestamp = st.number_input('Timestamp (e.g., 1678886400)', min_value=0, value=1678886400)
 amount = st.number_input('Amount', min_value=0.0, value=1000.0, format="%.2f")
 old_balance = st.number_input('Old Balance', min_value=0.0, value=5000.0, format="%.2f")
-new_balance = st.number_input('New Balance', min_value=0.0, value=4000.0, format="%.2f")
+new_balance = st.number_input('New Balance', min_value=0.0, value=6000.0, format="%.2f") # Changed default new_balance for testing
 is_international = st.selectbox('Is International?', options=[0, 1], format_func=lambda x: 'Yes' if x==1 else 'No')
 
 # Categorical inputs
@@ -44,11 +44,17 @@ if st.button('Predict Fraud'):
         'New_Balance': [new_balance],
         'Region': [region],
         'Device_Type': [device_type],
-         'Is_International': [is_international]
+        'Is_International': [is_international]
     })
-# Apply the same feature engineering steps
+    st.write('### Debugging: Raw Input Data')
+    st.dataframe(input_data)
+
+    # Apply the same feature engineering steps
     input_data['Hour'] = input_data['Timestamp'] % 24
     input_data['Balance_Error'] = (input_data['Old_Balance'] - input_data['Amount']) - input_data['New_Balance']
+
+    st.write('### Debugging: After Feature Engineering')
+    st.dataframe(input_data)
 
     # Apply one-hot encoding
     df_encoded_input = pd.get_dummies(input_data, columns=categorical_cols_for_encoding, drop_first=True)
@@ -58,8 +64,11 @@ if st.button('Predict Fraud'):
     for col in feature_columns:
         if col not in df_encoded_input.columns:
             df_encoded_input[col] = 0
-    # Drop any extra columns that weren't in the training set
+            # Drop any extra columns that weren't in the training set
     df_encoded_input = df_encoded_input[feature_columns]
+
+    st.write('### Debugging: Final Encoded Input for Model')
+    st.dataframe(df_encoded_input)
 
     # Make prediction
     try:
